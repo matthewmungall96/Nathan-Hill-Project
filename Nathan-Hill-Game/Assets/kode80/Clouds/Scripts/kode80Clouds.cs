@@ -393,7 +393,7 @@ namespace kode80.Clouds
 			_cloudCombinerMaterial.SetTexture( "_PrevFrame", _previousFrame);
 			_cloudsSharedProperties.ApplyToMaterial( _cloudCombinerMaterial);
 			
-			RenderTextureFormat format = _camera.hdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+			RenderTextureFormat format = _camera.allowHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 			RenderTexture combined = RenderTexture.GetTemporary( _previousFrame.width, _previousFrame.height, 0, format, RenderTextureReadWrite.Linear);
 			combined.filterMode = FilterMode.Bilinear;
 
@@ -549,7 +549,7 @@ namespace kode80.Clouds
 		{
 			if( _subFrame == null && _camera != null)
 			{
-				RenderTextureFormat format = _camera.hdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+				RenderTextureFormat format = _camera.allowHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 				_subFrame = new RenderTexture( _cloudsSharedProperties.subFrameWidth, 
 					_cloudsSharedProperties.subFrameHeight, 0, format, RenderTextureReadWrite.Linear);
 				_subFrame.filterMode = FilterMode.Bilinear;
@@ -559,7 +559,7 @@ namespace kode80.Clouds
 			
 			if( _previousFrame == null && _camera != null)
 			{
-				RenderTextureFormat format = _camera.hdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+				RenderTextureFormat format = _camera.allowHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 				_previousFrame = new RenderTexture( _cloudsSharedProperties.frameWidth, 
 					_cloudsSharedProperties.frameHeight, 0, format, RenderTextureReadWrite.Linear);
 				_previousFrame.filterMode = FilterMode.Bilinear;
