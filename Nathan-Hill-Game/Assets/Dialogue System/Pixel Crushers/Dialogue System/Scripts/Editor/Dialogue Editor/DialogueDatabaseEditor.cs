@@ -159,7 +159,7 @@ namespace PixelCrushers.DialogueSystem
             }
             else if (selectionType == typeof(Item))
             {
-                DrawInspectorSelectionTitle("Item");
+                DrawInspectorSelectionTitle((selection as Item).IsItem ? "Item" : "Quest");
                 var item = selection as Item;
                 DialogueEditor.DialogueEditorWindow.instance.DrawAssetSpecificPropertiesFirstPart(item);
                 DialogueEditor.DialogueEditorWindow.instance.DrawSelectedItemSecondPart();

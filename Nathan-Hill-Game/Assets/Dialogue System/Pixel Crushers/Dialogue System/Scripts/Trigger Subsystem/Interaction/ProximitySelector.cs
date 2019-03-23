@@ -186,6 +186,11 @@ namespace PixelCrushers.DialogueSystem
             if (!found && DialogueDebug.logWarnings) Debug.LogWarning("Dialogue System: Proximity Selector requires a collider, but it has no collider component.", this);
         }
 
+        public virtual void OnConversationStart(Transform actor)
+        {
+            timeToEnableUseButton = Time.time + MinTimeBetweenUseButton;
+        }
+
         public virtual void OnConversationEnd(Transform actor)
         {
             timeToEnableUseButton = Time.time + MinTimeBetweenUseButton;
@@ -199,7 +204,7 @@ namespace PixelCrushers.DialogueSystem
             // Exit if disabled or paused:
             if (!enabled || (Time.timeScale <= 0)) return;
 
-            if (DialogueManager.isConversationActive) timeToEnableUseButton = Time.time + MinTimeBetweenUseButton;
+            //--- Replaced by OnConversationStart: if (DialogueManager.isConversationActive) timeToEnableUseButton = Time.time + MinTimeBetweenUseButton;
 
             // If the currentUsable went missing (was destroyed or we changed scene), tell listeners:
             if (toldListenersHaveUsable && currentUsable == null)
@@ -217,12 +222,14 @@ namespace PixelCrushers.DialogueSystem
         {
             if (SelectedUsableObject != null) SelectedUsableObject(usable);
             onSelectedUsable.Invoke(usable);
+            if (usable != null) usable.OnSelectUsable();
         }
 
         protected void OnDeselectedUsableObject(Usable usable)
         {
             if (DeselectedUsableObject != null) DeselectedUsableObject(usable);
             onDeselectedUsable.Invoke(usable);
+            if (usable != null) usable.OnDeselectUsable();
         }
 
         /// <summary>
@@ -232,6 +239,7 @@ namespace PixelCrushers.DialogueSystem
         {
             if ((currentUsable != null) && (currentUsable.gameObject != null) && (Time.time >= timeToEnableUseButton))
             {
+                currentUsable.OnUseUsable();
                 var fromTransform = (actorTransform != null) ? actorTransform : this.transform;
                 if (broadcastToChildren)
                 {

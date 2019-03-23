@@ -301,7 +301,7 @@ namespace PixelCrushers.DialogueSystem
                 clickedDownOn = null;
                 if (distance <= usable.maxUseDistance)
                 {
-
+                    usable.OnUseUsable();
                     // If within range, send the OnUse message:
                     var fromTransform = (actorTransform != null) ? actorTransform : this.transform;
                     if (broadcastToChildren)
@@ -480,12 +480,14 @@ namespace PixelCrushers.DialogueSystem
         {
             if (SelectedUsableObject != null) SelectedUsableObject(usable);
             onSelectedUsable.Invoke(usable);
+            if (usable != null) usable.OnSelectUsable();
         }
 
         protected void OnDeselectedUsableObject(Usable usable)
         {
             if (DeselectedUsableObject != null) DeselectedUsableObject(usable);
             onDeselectedUsable.Invoke(usable);
+            if (usable != null) usable.OnDeselectUsable();
         }
 
         protected virtual void DeselectTarget()

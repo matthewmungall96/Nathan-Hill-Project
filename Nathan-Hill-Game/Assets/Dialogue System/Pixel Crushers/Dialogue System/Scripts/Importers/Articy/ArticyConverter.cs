@@ -121,6 +121,7 @@ namespace PixelCrushers.DialogueSystem.Articy
             if (conversation == null) return;
             conversationStack.Add(conversation);
 
+            //--- No longer used. Caused double links.
             //var conversationArticyId = conversation.LookupValue(ArticyIdFieldTitle);
             //var articyDialogue = articyData.dialogues.ContainsKey(conversationArticyId) ? articyData.dialogues[conversationArticyId] : null; // May be null if a flow fragment.
             //if (articyDialogue != null && articyDialogue.isDocument)
@@ -134,6 +135,7 @@ namespace PixelCrushers.DialogueSystem.Articy
         {
             if (conversationStack.Count < 1) return;
             conversationStack.RemoveAt(conversationStack.Count - 1);
+
             //documentConversation = null;
             //lastDocumentEntry = null;
         }
@@ -375,7 +377,8 @@ namespace PixelCrushers.DialogueSystem.Articy
 
         private string ConvertSpecialTechnicalNames(string technicalName)
         {
-            if (string.Equals(technicalName, "Success_Description") ||
+            if (string.Equals(technicalName, "Response_Menu_Sequence") || 
+                string.Equals(technicalName, "Success_Description") ||
                 string.Equals(technicalName, "Failure_Description") ||
                 string.Equals(technicalName, "Entry_Count") ||
                 Regex.Match(technicalName, @"^Entry_[0-9]").Success)

@@ -186,7 +186,7 @@ namespace PixelCrushers.DialogueSystem
             return false;
         }
 
-        protected void PlayCharacterAudio()
+        protected virtual void PlayCharacterAudio()
         {
             if (audioClip == null || audioSource == null) return;
             AudioClip randomClip = null;

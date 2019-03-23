@@ -925,6 +925,10 @@ namespace PixelCrushers.DialogueSystem
             {
                 return HandleSetPortraitInternally(commandName, args);
             }
+            else if (string.Equals(commandName, "SetTimeout"))
+            {
+                return HandleSetTimeoutInternally(commandName, args);
+            }
             else if (string.Equals(commandName, "SetContinueMode"))
             {
                 return HandleSetContinueModeInternally(commandName, args);
@@ -1409,6 +1413,23 @@ namespace PixelCrushers.DialogueSystem
                 if (subject != null && target != null)
                 {
                     var subjectRigidbody = subject.GetComponent<Rigidbody>();
+#if UNITY_5_3 || UNITY_5_4
+                    var navMeshAgent = subject.GetComponent<NavMeshAgent>();
+#else
+                    var navMeshAgent = subject.GetComponent<UnityEngine.AI.NavMeshAgent>();
+#endif
+                    if (navMeshAgent != null)
+                    {
+                        navMeshAgent.Warp(target.position);
+                        if (subjectRigidbody != null)
+                        {
+                            subjectRigidbody.MoveRotation(target.rotation);
+                        }
+                        else
+                        {
+                            subject.rotation = target.rotation;
+                        }
+                    }
                     if (subjectRigidbody != null)
                     {
                         subjectRigidbody.MoveRotation(target.rotation);
@@ -1692,10 +1713,10 @@ namespace PixelCrushers.DialogueSystem
                 else
                 {
                     if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Sequencer: SetPanel({1}, {2})", new System.Object[] { DialogueDebug.Prefix, name, subtitlePanelNumber }));
-                    var standardDialogueUI = DialogueManager.dialogueUI as StandardDialogueUI;
+                    var standardDialogueUI = DialogueManager.dialogueUI as IStandardDialogueUI;
                     if (standardDialogueUI != null)
                     {
-                        standardDialogueUI.conversationUIElements.standardSubtitleControls.OverrideActorPanel(actor, subtitlePanelNumber);
+                        standardDialogueUI.OverrideActorPanel(actor, subtitlePanelNumber);
                     }
                 }
                 return true;
@@ -1726,10 +1747,10 @@ namespace PixelCrushers.DialogueSystem
             else if (actorTransform != null)
             {
                 if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Sequencer: SetMenuPanel({1}, {2})", new System.Object[] { DialogueDebug.Prefix, name, menuPanelNumber }));
-                var standardDialogueUI = DialogueManager.dialogueUI as StandardDialogueUI;
+                var standardDialogueUI = DialogueManager.dialogueUI as IStandardDialogueUI;
                 if (standardDialogueUI != null)
                 {
-                    standardDialogueUI.conversationUIElements.standardMenuControls.OverrideActorMenuPanel(actorTransform, menuPanelNumber, standardDialogueUI.conversationUIElements.defaultMenuPanel);
+                    standardDialogueUI.OverrideActorMenuPanel(actorTransform, menuPanelNumber, null);
                 }
             }
             else
@@ -1808,6 +1829,24 @@ namespace PixelCrushers.DialogueSystem
                     if (texture != null) DialogueLua.SetActorField(actorName, DialogueSystemFields.CurrentPortrait, textureName);
                 }
                 DialogueManager.instance.SetActorPortraitTexture(actorName, texture);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Handles the "SetMenuPanel(actorName, panelNum)" action.
+        /// 
+        /// Arguments:
+        /// -# The name of a GameObject or actor in the dialogue database. Default: speaker.
+        /// -# The panel number or 'default'.
+        /// </summary>
+        private bool HandleSetTimeoutInternally(string commandName, string[] args)
+        {
+            float duration = SequencerTools.GetParameterAsFloat(args, 0);
+            if (DialogueDebug.logInfo) Debug.Log(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}: Sequencer: SetTimeout({1})", DialogueDebug.Prefix, duration));
+            if (DialogueManager.displaySettings != null && DialogueManager.displaySettings.inputSettings != null)
+            {
+                DialogueManager.displaySettings.inputSettings.responseTimeout = duration;
             }
             return true;
         }

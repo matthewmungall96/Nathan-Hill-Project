@@ -15,11 +15,17 @@ namespace PixelCrushers
     public class TextTableEditorWindow : EditorWindow
     {
 
+        #region Menu Item
+
         [MenuItem("Tools/Pixel Crushers/Common/Text Table Editor")]
         public static void ShowWindow()
         {
             GetWindow<TextTableEditorWindow>();
         }
+
+        #endregion
+
+        #region Variables
 
         public static bool isOpen { get { return instance != null; } }
 
@@ -60,8 +66,11 @@ namespace PixelCrushers
         private ReorderableList m_fieldList = null;
         private SerializedObject m_serializedObject = null;
         private GUIStyle textAreaStyle = null;
+        private bool isTextAreaStyleInitialized = false;
 
         private const string EncodingTypeEditorPrefsKey = "PixelCrushers.EncodingType";
+
+        #endregion
 
         #region Editor Entrypoints
 
@@ -264,6 +273,22 @@ namespace PixelCrushers
 
         private string[] m_languageDropdownList = null;
 
+        private class CachedFieldInfo
+        {
+            public SerializedProperty fieldNameProperty;
+            public SerializedProperty fieldValueProperty;
+            public string nameControl;
+            public string valueControl;
+            public CachedFieldInfo(int index, SerializedProperty fieldNameProperty, SerializedProperty fieldValueProperty)
+            {
+                this.fieldNameProperty = fieldNameProperty;
+                this.fieldValueProperty = fieldValueProperty;
+                this.nameControl = "Field" + index;
+                this.valueControl = "Value" + index;
+            }
+        }
+        private List<CachedFieldInfo> m_fieldCache = new List<CachedFieldInfo>();
+
         private void DrawGrid()
         {
             if (m_textTable == null) return;
@@ -292,6 +317,8 @@ namespace PixelCrushers
                         languages.Add(languageKeysProperty.GetArrayElementAtIndex(i).stringValue);
                     }
                     m_languageDropdownList = languages.ToArray();
+
+                    RebuildFieldCache();
                 }
 
                 m_fieldList.DoLayoutList();
@@ -300,6 +327,41 @@ namespace PixelCrushers
             {
                 GUILayout.EndScrollView();
                 GUILayout.EndArea();
+            }
+        }
+
+        private void RebuildFieldCache()
+        {
+            m_fieldCache.Clear();
+
+            var fieldValuesProperty = m_serializedObject.FindProperty("m_fieldValues");
+            for (int index = 0; index < fieldValuesProperty.arraySize; index++)
+            {
+                var fieldValueProperty = fieldValuesProperty.GetArrayElementAtIndex(index);
+                var fieldNameProperty = fieldValueProperty.FindPropertyRelative("m_fieldName");
+                var keysProperty = fieldValueProperty.FindPropertyRelative("m_keys");
+                var valuesProperty = fieldValueProperty.FindPropertyRelative("m_values");
+
+                var valueIndex = -1;
+                for (int i = 0; i < keysProperty.arraySize; i++)
+                {
+                    if (keysProperty.GetArrayElementAtIndex(i).intValue == m_selectedLanguageID)
+                    {
+                        valueIndex = i;
+                        break;
+                    }
+                }
+                if (valueIndex == -1)
+                {
+                    valueIndex = keysProperty.arraySize;
+                    keysProperty.arraySize++;
+                    keysProperty.GetArrayElementAtIndex(valueIndex).intValue = m_selectedLanguageID;
+                    valuesProperty.arraySize++;
+                    valuesProperty.GetArrayElementAtIndex(valueIndex).stringValue = string.Empty;
+                }
+                var valueProperty = valuesProperty.GetArrayElementAtIndex(valueIndex);
+
+                m_fieldCache.Add(new CachedFieldInfo(index, fieldNameProperty, valueProperty));
             }
         }
 
@@ -316,46 +378,29 @@ namespace PixelCrushers
                 var languageValuesProperty = m_serializedObject.FindProperty("m_languageValues");
                 var languageValueProperty = languageValuesProperty.GetArrayElementAtIndex(newIndex);
                 m_selectedLanguageID = languageValueProperty.intValue;
+                RebuildFieldCache();
             }
         }
 
         private void OnDrawFieldListElement(Rect rect, int index, bool isActive, bool isFocused)
         {
+            // Since lists can be very long, only draw elements within the visible window:
+
+            if (!(0 <= index && index < m_fieldCache.Count)) return;
+            var isElementVisible = rect.Overlaps(new Rect(0, m_fieldListScrollPosition.y, position.width, position.height));
+            if (!isElementVisible) return;
+
             var columnWidth = (rect.width / 2) - 1;
 
-            var nameControl = "Field" + index;
-            var valueControl = "Value" + index;
+            var info = m_fieldCache[index];
+            
+            GUI.SetNextControlName(info.nameControl);
+            EditorGUI.PropertyField(new Rect(rect.x, rect.y + 1, columnWidth, EditorGUIUtility.singleLineHeight), info.fieldNameProperty, GUIContent.none, false);
 
-
-            var fieldValuesProperty = m_serializedObject.FindProperty("m_fieldValues");
-            var fieldValueProperty = fieldValuesProperty.GetArrayElementAtIndex(index);
-            var fieldNameProperty = fieldValueProperty.FindPropertyRelative("m_fieldName");
-            GUI.SetNextControlName(nameControl);
-            EditorGUI.PropertyField(new Rect(rect.x, rect.y + 1, columnWidth, EditorGUIUtility.singleLineHeight), fieldNameProperty, GUIContent.none, false);
-            var keysProperty = fieldValueProperty.FindPropertyRelative("m_keys");
-            var valuesProperty = fieldValueProperty.FindPropertyRelative("m_values");
-            var valueIndex = -1;
-            for (int i = 0; i < keysProperty.arraySize; i++)
-            {
-                if (keysProperty.GetArrayElementAtIndex(i).intValue == m_selectedLanguageID)
-                {
-                    valueIndex = i;
-                    break;
-                }
-            }
-            if (valueIndex == -1)
-            {
-                valueIndex = keysProperty.arraySize;
-                keysProperty.arraySize++;
-                keysProperty.GetArrayElementAtIndex(valueIndex).intValue = m_selectedLanguageID;
-                valuesProperty.arraySize++;
-                valuesProperty.GetArrayElementAtIndex(valueIndex).stringValue = string.Empty;
-            }
-            var valueProperty = valuesProperty.GetArrayElementAtIndex(valueIndex);
-            GUI.SetNextControlName(valueControl);
-            EditorGUI.PropertyField(new Rect(rect.x + rect.width - columnWidth, rect.y + 1, columnWidth, EditorGUIUtility.singleLineHeight), valueProperty, GUIContent.none, false);
+            GUI.SetNextControlName(info.valueControl);
+            EditorGUI.PropertyField(new Rect(rect.x + rect.width - columnWidth, rect.y + 1, columnWidth, EditorGUIUtility.singleLineHeight), info.fieldValueProperty, GUIContent.none, false);
             var focusedControl = GUI.GetNameOfFocusedControl();
-            if (string.Equals(nameControl, focusedControl) || string.Equals(valueControl, focusedControl))
+            if (string.Equals(info.nameControl, focusedControl) || string.Equals(info.valueControl, focusedControl))
             {
                 m_selectedFieldListElement = index;
                 m_fieldList.index = index;
@@ -432,8 +477,9 @@ namespace PixelCrushers
                 valuesProperty.arraySize++;
                 valuesProperty.GetArrayElementAtIndex(valueIndex).stringValue = string.Empty;
             }
-            if (textAreaStyle == null)
+            if (textAreaStyle == null || !isTextAreaStyleInitialized)
             {
+                isTextAreaStyleInitialized = true;
                 textAreaStyle = new GUIStyle(EditorStyles.textField);
                 textAreaStyle.wordWrap = true;
             }
@@ -469,6 +515,10 @@ namespace PixelCrushers
             }
         }
 
+        #endregion
+
+        #region CSV
+
         private void ExportCSVDialogs()
         {
             string newFilename = EditorUtility.SaveFilePanel("Export to CSV", GetPath(m_csvFilename), m_csvFilename, "csv");
@@ -491,7 +541,7 @@ namespace PixelCrushers
 
         private void ImportCSVDialogs()
         {
-            if (!EditorUtility.DisplayDialog("Import CSV?", "Importing from CSV will overwrite the current contents. Are you sure?", "Import", "Cancel")) return;
+            if (!EditorUtility.DisplayDialog("Import CSV?", "Importing from CSV will overwrite any existing languages or fields with the same name in the current contents. Are you sure?", "Import", "Cancel")) return;
             string newFilename = EditorUtility.OpenFilePanel("Import from CSV", GetPath(m_csvFilename), "csv");
             if (string.IsNullOrEmpty(newFilename)) return;
             if (!File.Exists(newFilename))
@@ -627,6 +677,10 @@ namespace PixelCrushers
             }
             EditorUtility.SetDirty(m_textTable);
         }
+
+        #endregion
+
+        #region Sort
 
         private void Sort()
         {

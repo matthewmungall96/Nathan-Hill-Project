@@ -1,7 +1,7 @@
-using UnityEngine;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Graphs;
-using System.Collections.Generic;
+using UnityEngine;
 
 namespace PixelCrushers.DialogueSystem.DialogueEditor
 {
@@ -44,7 +44,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 
         private Dictionary<int, Texture2D> actorPortraitCache = null;
 
-        private Dictionary<int, Styles.Color> actorNodeColorCache = null;
+        private Dictionary<int, Color> actorNodeColorCache = null;
 
         [SerializeField]
         private bool zoomLocked;
@@ -71,6 +71,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private DialogueEntry currentHoveredEntry = null;
         private GUIContent currentHoverGUIContent = null;
         private Rect currentHoverRect;
+
+        private GUIStyle nodeStyle = null;
 
         private static Color OutgoingLinkColor = Color.yellow;
         private static Color IncomingLinkColor = new Color(0.6f, 0.3f, 0.1f);
@@ -163,7 +165,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private void DrawParticipantsOnCanvas()
         {
             if (currentConversation == null) return;
-            if (currentConversation != null && 
+            if (currentConversation != null &&
                 (currentConversation != canvasParticipantsConversation || (currentConversation.ActorID != canvasActorID || currentConversation.ConversantID != canvasConversantID)))
             {
                 canvasParticipantsConversation = currentConversation;
@@ -261,11 +263,12 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                         {
                             connectorColor = IncomingLinkColor;
                         }
-                        DrawLink(start, end, connectorColor);
+                        DrawLink(start, end, connectorColor, link.priority != ConditionPriority.Normal);
                         HandleConnectorEvents(link, start, end);
                     }
                 }
-                else {
+                else
+                {
                     // Otherwise show special cross-conversation arrow link:
                     Vector3 start = new Vector3(entry.canvasRect.center.x, entry.canvasRect.center.y, 0);
                     Vector3 end = new Vector3(start.x, start.y + 26, 0);
@@ -297,7 +300,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 
         private bool IsValidRuntimeLink(Link link)
         {
-            return (currentConversationState != null) && 
+            return (currentConversationState != null) &&
                 (IsValidRuntimeResponse(link, currentConversationState.pcResponses) ||
                 IsValidRuntimeResponse(link, currentConversationState.npcResponses));
         }
@@ -331,7 +334,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 Vector3 end = (linkTargetEntry != null)
                     ? new Vector3(linkTargetEntry.canvasRect.center.x, linkTargetEntry.canvasRect.center.y, 0)
                     : new Vector3(Event.current.mousePosition.x, Event.current.mousePosition.y, 0);
-                DrawLink(start, end, Color.white);
+                DrawLink(start, end, Color.white, false);
             }
         }
 
@@ -440,6 +443,10 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 var text = currentHoveredEntry.currentDialogueText;
                 if (string.IsNullOrEmpty(text)) text = currentHoveredEntry.currentMenuText;
                 if (string.IsNullOrEmpty(text)) text = currentHoveredEntry.Title;
+                if (Application.isPlaying && DialogueManager.instance != null && DialogueManager.instance.includeSimStatus)
+                {
+                    text += "\nSimStatus=" + DialogueLua.GetSimStatus(currentHoveredEntry);
+                }
                 currentHoverGUIContent = string.IsNullOrEmpty(text) ? null : new GUIContent(text);
                 if (currentHoverGUIContent != null)
                 {
@@ -461,28 +468,42 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 
             bool isSelected = multinodeSelection.nodes.Contains(entry);
             var nodeColor = GetNodeColor(entry);
-            if (entry.id == 0) nodeColor = Styles.Color.Orange;
+            if (entry.id == 0) nodeColor = EditorTools.NodeColor_Orange;
             if (IsCurrentRuntimeEntry(entry))
             {
-                nodeColor = Styles.Color.Green;
+                nodeColor = EditorTools.NodeColor_Green;
             }
 
-            if (orphanIDs.Contains(entry.id) && (entry.id != 0)) nodeColor = Styles.Color.Red;
+            if (orphanIDs.Contains(entry.id) && (entry.id != 0)) nodeColor = EditorTools.NodeColor_Red;
+
+            if (nodeStyle == null || nodeStyle.normal == null || nodeStyle.normal.background == null)
+            {
+                nodeStyle = new GUIStyle(GUI.skin.box);
+                nodeStyle.wordWrap = false;
+                nodeStyle.contentOffset = new Vector2(0, -4);
+                nodeStyle.alignment = TextAnchor.MiddleCenter;
+                nodeStyle.normal.background = (EditorGUIUtility.Load("Dialogue System/EditorNode.png") as Texture2D) ?? Texture2D.whiteTexture;
+                nodeStyle.normal.textColor = EditorGUIUtility.isProSkin ? new Color(0.9f, 0.9f, 0.9f) : Color.black;
+            }
 
             string nodeLabel = GetDialogueEntryNodeText(entry);
-            var bigRect = isSelected ? new Rect(entry.canvasRect.x - 4, entry.canvasRect.y - 4, entry.canvasRect.width + 8, entry.canvasRect.height + 8) : entry.canvasRect;
-            if (showAllActorNames)
+
+            var guicolor_backup = GUI.backgroundColor;
+            GUI.backgroundColor = nodeColor;
+
+            if (isSelected)
             {
-                GUIStyle nodeStyle = new GUIStyle(Styles.GetNodeStyle("node", nodeColor, isSelected));
-                nodeStyle.padding.top = 23;
-                nodeStyle.padding.bottom = 0;
-                if (isSelected) GUI.Box(bigRect, string.Empty, nodeStyle);
-                GUI.Box(entry.canvasRect, nodeLabel, nodeStyle);
+                GUI.backgroundColor = Color.white;
+                var bigRect = new Rect(entry.canvasRect.x - 1, entry.canvasRect.y - 4, entry.canvasRect.width + 6, entry.canvasRect.height + 8);
+                GUI.Box(bigRect, string.Empty, Styles.GetNodeStyle("node", (nodeColor == EditorTools.NodeColor_Blue) ? Styles.Color.Blue : Styles.Color.Gray, isSelected));
+                GUI.backgroundColor = nodeColor;
             }
-            else {
-                if (isSelected) GUI.Box(bigRect, string.Empty, Styles.GetNodeStyle("node", nodeColor, isSelected));
-                GUI.Box(entry.canvasRect, nodeLabel, Styles.GetNodeStyle("node", nodeColor, isSelected));
-            }
+
+            GUI.Box(new Rect(entry.canvasRect.x, entry.canvasRect.y, entry.canvasRect.width + 4, entry.canvasRect.height + 4),
+                nodeLabel, nodeStyle);
+
+            GUI.backgroundColor = guicolor_backup;
+
             if (showActorPortraits)
             {
                 var portrait = GetActorPortrait(entry.ActorID);
@@ -504,18 +525,18 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             return actorPortraitCache[actorID];
         }
 
-        private Styles.Color GetNodeColor(DialogueEntry entry)
+        private Color GetNodeColor(DialogueEntry entry)
         {
-            if (entry == null) return Styles.Color.Gray;
+            if (entry == null) return EditorTools.NodeColor_Gray;
             var actorID = entry.ActorID;
-            if (actorNodeColorCache == null) actorNodeColorCache = new Dictionary<int, Styles.Color>();
+            if (actorNodeColorCache == null) actorNodeColorCache = new Dictionary<int, Color>();
             if (!actorNodeColorCache.ContainsKey(actorID))
             {
-                var nodeColor = database.IsPlayerID(actorID) ? Styles.Color.Blue : Styles.Color.Gray;
+                var nodeColor = database.IsPlayerID(actorID) ? EditorTools.NodeColor_Blue : EditorTools.NodeColor_Gray;
                 var actor = database.GetActor(actorID);
                 if (actor != null && actor.FieldExists(NodeColorFieldTitle))
                 {
-                    nodeColor = EditorTools.StringToStylesColor(actor.LookupValue(NodeColorFieldTitle));
+                    nodeColor = EditorTools.NodeColorStringToColor(actor.LookupValue(NodeColorFieldTitle));
                 }
                 actorNodeColorCache.Add(actorID, nodeColor);
             }
@@ -690,7 +711,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                             {
                                 FinishMakingLink();
                             }
-                            else {
+                            else
+                            {
                                 nodeToDrag = entry;
                                 dragged = false;
                                 if (!IsShiftDown() && ((multinodeSelection.nodes.Count <= 1) || !multinodeSelection.nodes.Contains(entry)))
@@ -725,11 +747,13 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                                 {
                                     RemoveEntryFromSelection(entry);
                                 }
-                                else {
+                                else
+                                {
                                     AddEntryToSelection(entry);
                                 }
                             }
-                            else {
+                            else
+                            {
                                 if (!(dragged && (multinodeSelection.nodes.Count > 1)))
                                 {
                                     SetCurrentEntry(entry);
@@ -831,7 +855,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             if (currentEntry == null) return;
             var rect = currentEntry.canvasRect;
             var x = rect.x + (rect.width / 2) - (position.width / 2);
-            var y = rect.y + (rect.height / 2) - (position.height/ 2);
+            var y = rect.y + (rect.height / 2) - (position.height / 2);
             x = Mathf.Clamp(x, 0, CanvasSize - position.width);
             y = Mathf.Clamp(y, 0, CanvasSize - position.height);
             canvasScrollPosition = new Vector2(x, y);
@@ -853,7 +877,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             {
                 currentEntry = null;
             }
-            else {
+            else
+            {
                 currentEntry = multinodeSelection.nodes[multinodeSelection.nodes.Count - 1];
             }
             UpdateEntrySelection();
@@ -871,7 +896,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             {
                 inspectorSelection = currentEntry;
             }
-            else {
+            else
+            {
                 inspectorSelection = multinodeSelection;
             }
         }
@@ -899,7 +925,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                         {
                             ShowLinkContextMenu();
                         }
-                        else {
+                        else
+                        {
                             if (currentConversation != null)
                             {
                                 ShowEmptyCanvasContextMenu();
@@ -996,6 +1023,9 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             }
             contextMenu.AddItem(new GUIContent("Duplicate Conversation"), false, CopyConversationCallback, null);
             contextMenu.AddItem(new GUIContent("Delete Conversation"), false, DeleteConversationCallback, null);
+
+            AddCanvasContextMenuGotoItems(contextMenu);
+
             contextMenu.ShowAsContext();
             contextMenuPosition = Event.current.mousePosition;
 
@@ -1009,6 +1039,9 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             GenericMenu contextMenu = new GenericMenu();
             contextMenu.AddItem(new GUIContent("Delete Link"), false, DeleteLinkCallback, selectedLink);
             contextMenu.AddItem(new GUIContent("Arrange Nodes..."), false, ArrangeNodesCallback, null);
+
+            AddCanvasContextMenuGotoItems(contextMenu);
+
             contextMenu.ShowAsContext();
             contextMenuPosition = Event.current.mousePosition;
 
@@ -1048,7 +1081,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 }
                 contextMenu.AddDisabledItem(new GUIContent("Delete"));
             }
-            else {
+            else
+            {
                 contextMenu.AddItem(new GUIContent("Copy"), false, CopyEntryCallback, entry);
                 if (IsNodeClipboardEmpty())
                 {
@@ -1062,10 +1096,31 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             }
             contextMenu.AddItem(new GUIContent("Arrange Nodes..."), false, ArrangeNodesCallback, entry);
             contextMenu.AddItem(new GUIContent("Snap All Nodes to Grid"), false, SnapAllNodesToGrid);
+
+            AddCanvasContextMenuGotoItems(contextMenu);
+
             contextMenu.ShowAsContext();
             contextMenuPosition = Event.current.mousePosition;
 
             EditorZoomArea.Begin(_zoom, _zoomArea);
+        }
+
+        private void AddCanvasContextMenuGotoItems(GenericMenu contextMenu)
+        {
+            contextMenu.AddSeparator(string.Empty);
+            contextMenu.AddItem(new GUIContent("Home Position"), false, GotoCanvasHomePosition);
+            if (currentConversation != null)
+            {
+                contextMenu.AddItem(new GUIContent("Center on START"), false, GotoStartNodePosition);
+                if (IsConversationActive())
+                {
+                    contextMenu.AddItem(new GUIContent("Center on Current Entry"), false, GotoCurrentRuntimeEntry);
+                }
+            }
+            else
+            {
+                contextMenu.AddDisabledItem(new GUIContent("Center on START"));
+            }
         }
 
         private void AddChildCallback(object o)
@@ -1448,7 +1503,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private void MoveToEntry(DialogueEntry entry)
         {
             var x = entry.canvasRect.x + (entry.canvasRect.width / 2) - ((position.width / _zoom) / 2);
-            var y = entry.canvasRect.y - (entry.canvasRect.height / _zoom); 
+            var y = entry.canvasRect.y - (entry.canvasRect.height / _zoom);
             canvasScrollPosition = new Vector2(Mathf.Max(0, x), Mathf.Max(0, y));
             Repaint();
         }
