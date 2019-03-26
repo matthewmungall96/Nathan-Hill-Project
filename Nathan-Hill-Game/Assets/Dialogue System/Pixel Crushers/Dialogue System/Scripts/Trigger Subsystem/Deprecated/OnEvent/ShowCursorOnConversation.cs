@@ -45,7 +45,7 @@ namespace PixelCrushers.DialogueSystem
 
         public void OnConversationStart(Transform actor)
         {
-            wasCursorVisible = Cursor.visible;
+            wasCursorVisible = Cursor.visible = false;
             savedLockState = Cursor.lockState;
             StartCoroutine(ShowCursorAfterOneFrame());
         }
@@ -53,7 +53,7 @@ namespace PixelCrushers.DialogueSystem
         private IEnumerator ShowCursorAfterOneFrame()
         {
             yield return null;
-            Cursor.visible = true;
+            Cursor.visible = false;
             Cursor.lockState = CursorLockMode.None;
         }
 

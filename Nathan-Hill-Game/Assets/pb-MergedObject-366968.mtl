@@ -1,9 +1,0 @@
-newmtl Grey
-map_Kd Grey.jpg
-Kd 1 1 1
-d 1
-
-newmtl Material_003
-Kd 0.1574 0.0302 0.0336
-d 1
-

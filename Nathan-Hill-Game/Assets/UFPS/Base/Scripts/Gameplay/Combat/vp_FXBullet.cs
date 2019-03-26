@@ -46,7 +46,19 @@ public class vp_FXBullet : vp_Bullet
 		// impact sound at the correct 3d position
 		m_Transform.position = m_Hit.point;
 
-		vp_SurfaceManager.SpawnEffect(m_Hit, ImpactEvent, m_Audio);
+
+        //Damage Emerald AI object
+        if (m_Hit.collider.gameObject.tag == "Emerald AI")
+        {
+            if (m_Hit.collider.gameObject.GetComponent<EmeraldAI.EmeraldAISystem>() != null)
+            {
+                EmeraldAI.EmeraldAISystem EmeraldComponent = m_Hit.collider.gameObject.GetComponent<EmeraldAI.EmeraldAISystem>();
+                EmeraldComponent.Damage((int)Damage, EmeraldAI.EmeraldAISystem.TargetType.Player, m_Source.transform, 400);
+            }
+        }
+
+
+        vp_SurfaceManager.SpawnEffect(m_Hit, ImpactEvent, m_Audio);
 
 	}
 
