@@ -1,0 +1,48 @@
+newmtl Outside_Wall_Material
+map_Kd Outside_Walls.jpg
+Kd 1 1 1
+d 1
+
+newmtl Int_Walls_Mat
+map_Kd Int_Walls.jpg
+disp Int_Walls.jpg
+Kd 1 1 1
+d 1
+
+newmtl Floor_Material_2
+map_Kd Floor_2.jpg
+disp Floor_2.jpg
+Kd 1 1 1
+d 1
+
+newmtl Floor_Material
+map_Kd Floor.jpg
+Kd 1 1 1
+d 1
+
+newmtl Walls-Material
+map_Kd Walls.jpg
+disp Walls.jpg
+Kd 1 1 1
+d 1
+
+newmtl Hill_Wall_Material
+map_Kd 78_pools coatings concrete texture-seamless.jpg
+Kd 1 1 1
+d 1
+
+newmtl ProBuilderDefault
+map_Kd GridBox_Default.png
+Kd 1 1 1
+d 1
+
+newmtl Glass0
+bump Ground02_normal.png
+Kd 1 1 1
+d 1
+
+newmtl Glass3
+bump MK_Glass_P_N0.png
+Kd 0.8602941 0.4093812 0
+d 1
+
