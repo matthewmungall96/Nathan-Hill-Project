@@ -48,12 +48,12 @@ namespace PixelCrushers
 		
 		public static bool isCursorVisible
 		{
-			get { return Cursor.visible = false; }
+			get { return Cursor.visible; }
 		}
 		
 		public static bool isCursorLocked
 		{
-			get { return Cursor.lockState != CursorLockMode.Locked; }
+			get { return Cursor.lockState != CursorLockMode.None; }
 		}
 		
 		private static CursorLockMode previousLockMode = CursorLockMode.Locked;
@@ -69,7 +69,7 @@ namespace PixelCrushers
 			{
 				previousLockMode = Cursor.lockState;
 			}
-			Cursor.lockState = value ? previousLockMode : CursorLockMode.Locked;
+			Cursor.lockState = value ? previousLockMode : CursorLockMode.None;
 		}
 		
 #endif
