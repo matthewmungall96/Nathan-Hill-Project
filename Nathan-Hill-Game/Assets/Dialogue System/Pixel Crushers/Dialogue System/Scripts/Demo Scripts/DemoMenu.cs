@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 using PixelCrushers.DialogueSystem.UnityGUI;
 
 namespace PixelCrushers.DialogueSystem.Demo
@@ -60,29 +61,28 @@ namespace PixelCrushers.DialogueSystem.Demo
 
         private void WindowFunction(int windowID)
         {
-            if (GUI.Button(new Rect(10, 60, windowRect.width - 20, 48), "Quest Log"))
+            if (GUI.Button(new Rect(10, 20, windowRect.width - 20, 48), "Quest Log"))
             {
                 if (closeWhenQuestLogOpen) SetMenuStatus(false);
                 OpenQuestLog();
             }
-            if (GUI.Button(new Rect(10, 110, windowRect.width - 20, 48), "Save Game"))
+            if (GUI.Button(new Rect(10, 60, windowRect.width - 20, 48), "Save Game"))
             {
                 SetMenuStatus(false);
                 SaveGame();
             }
-            if (GUI.Button(new Rect(10, 160, windowRect.width - 20, 48), "Load Game"))
+            if (GUI.Button(new Rect(10, 100, windowRect.width - 20, 48), "Load Game"))
             {
                 SetMenuStatus(false);
                 LoadGame();
             }
-            if (GUI.Button(new Rect(10, 210, windowRect.width - 20, 48), "Clear Saved Game"))
+            if (GUI.Button(new Rect(10, 140, windowRect.width - 20, 48), "Settings"))
             {
                 SetMenuStatus(false);
-                ClearSavedGame();
             }
-            if (GUI.Button(new Rect(10, 260, windowRect.width - 20, 48), "Close Menu"))
+            if (GUI.Button(new Rect(10, 180, windowRect.width - 20, 48), "Return to Main Menu"))
             {
-                SetMenuStatus(false);
+                SceneManager.LoadScene("menu");
             }
         }
 
@@ -117,7 +117,7 @@ namespace PixelCrushers.DialogueSystem.Demo
             }
         }
 
-        private void SaveGame()
+        public void SaveGame()
         {
             var saveSystem = FindObjectOfType<SaveSystem>();
             if (saveSystem != null)
@@ -133,7 +133,7 @@ namespace PixelCrushers.DialogueSystem.Demo
             DialogueManager.ShowAlert("Game saved.");
         }
 
-        private void LoadGame()
+        public void LoadGame()
         {
             PersistentDataManager.LevelWillBeUnloaded();
             var saveSystem = FindObjectOfType<SaveSystem>();
@@ -183,6 +183,7 @@ namespace PixelCrushers.DialogueSystem.Demo
                 Debug.Log("Cleared saved game data");
             }
             DialogueManager.ShowAlert("Saved Game Cleared From PlayerPrefs");
+
         }
 
     }

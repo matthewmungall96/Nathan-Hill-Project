@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using PixelCrushers.DialogueSystem.UnityGUI;
 
 //Script is held by the empty object MainMenu so functions are all gathered in one script
 public class Mainmenu : MonoBehaviour {
@@ -9,7 +10,7 @@ public class Mainmenu : MonoBehaviour {
     //Function called when Play button is pressed
 	public void PlayGame()
     {
-        SceneManager.LoadScene("SampleScene");
+        SceneManager.LoadScene("Tutorial (Testing)");
     }
 
     //Function called when Quit button is pressed
