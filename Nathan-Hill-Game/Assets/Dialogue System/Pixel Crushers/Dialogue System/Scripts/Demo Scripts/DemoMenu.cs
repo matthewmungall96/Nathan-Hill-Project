@@ -79,6 +79,8 @@ namespace PixelCrushers.DialogueSystem.Demo
             if (GUI.Button(new Rect(10, 140, windowRect.width - 20, 48), "Settings"))
             {
                 SetMenuStatus(false);
+                GameObject OptionsMenu;
+
             }
             if (GUI.Button(new Rect(10, 180, windowRect.width - 20, 48), "Return to Main Menu"))
             {

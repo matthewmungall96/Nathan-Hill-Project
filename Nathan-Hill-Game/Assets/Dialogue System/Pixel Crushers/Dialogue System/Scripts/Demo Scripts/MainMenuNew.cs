@@ -87,9 +87,7 @@ namespace PixelCrushers.DialogueSystem.Demo
                 PlayerPrefs.DeleteKey("SavedGame");
                 Debug.Log("Cleared saved game data");
             }
-            DialogueManager.ShowAlert("Saved Game Cleared From PlayerPrefs");
-            SceneManager.LoadScene("tutorial");
-
+            SceneManager.LoadScene("Tutorial (Testing)");
         }
 
     }
