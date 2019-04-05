@@ -1,10 +1,6 @@
 fileFormatVersion: 2
-guid: 6fc108dbfb4c44545adcd51adcd0825a
-labels:
-- Fps
-- Ufps
-- Ultimate
-DefaultImporter:
+guid: bd4f5c528eb5940d49f8cffdf5f5c257
+PrefabImporter:
   externalObjects: {}
   userData: 
   assetBundleName: 
