@@ -1,12 +1,8 @@
 fileFormatVersion: 2
-<<<<<<< HEAD
-guid: 666b3c29face45f46a8a4995f7cd07a3
-=======
-guid: e1ead27185e44094799f9c7483a2fd08
->>>>>>> parent of ea35cd74... Niks work
+guid: 488236eb160f3c5479dfafe627db52ab
 NativeFormatImporter:
   externalObjects: {}
-  mainObjectFileID: 11400000
+  mainObjectFileID: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 
