@@ -84,6 +84,8 @@ namespace PixelCrushers.DialogueSystem.Demo
             }
             if (GUI.Button(new Rect(10, 180, windowRect.width - 20, 48), "Return to Main Menu"))
             {
+                SetMenuStatus(false);
+                menuKey = KeyCode.KeypadEnter;
                 SceneManager.LoadScene("menu");
             }
         }
