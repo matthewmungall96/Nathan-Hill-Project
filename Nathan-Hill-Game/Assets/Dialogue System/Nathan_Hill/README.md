@@ -1,0 +1,9 @@
+99 = paintings > Why are all those paintings so off...
+
+98 = blood > Blood !? What the...
+
+97 = Coffin > It looks more and more like a bad movie...
+
+96 = Grave > A list of names... Each death date is recent... The rumors were true ?
+
+95 = Rocking chair > That's one mad rocking chair... How in the world does it moves on its own !?
