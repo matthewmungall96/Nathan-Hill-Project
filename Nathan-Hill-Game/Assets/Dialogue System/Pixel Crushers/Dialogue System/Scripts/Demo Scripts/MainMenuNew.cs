@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using PixelCrushers.DialogueSystem.UnityGUI;
 
 namespace PixelCrushers.DialogueSystem.Demo
@@ -36,7 +37,6 @@ namespace PixelCrushers.DialogueSystem.Demo
             //	Screen.lockCursor = true;
             //}
         }
-
 
         public void LoadGame()
         {

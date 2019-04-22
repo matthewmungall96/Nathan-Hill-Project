@@ -66,16 +66,6 @@ namespace PixelCrushers.DialogueSystem.Demo
                 if (closeWhenQuestLogOpen) SetMenuStatus(false);
                 OpenQuestLog();
             }
-            if (GUI.Button(new Rect(10, 60, windowRect.width - 20, 48), "Save Game"))
-            {
-                SetMenuStatus(false);
-                SaveGame();
-            }
-            if (GUI.Button(new Rect(10, 100, windowRect.width - 20, 48), "Load Game"))
-            {
-                SetMenuStatus(false);
-                LoadGame();
-            }
             if (GUI.Button(new Rect(10, 140, windowRect.width - 20, 48), "Settings"))
             {
                 SetMenuStatus(false);
